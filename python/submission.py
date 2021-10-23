@@ -100,7 +100,6 @@ def triangulate(C1, pts1, C2, pts2):
         # Get coordinates
         xl, yl = pts1[i,:]
         xr, yr = pts2[i,:]
-        print('Coord: ({},{}), ({},{})'.format(xl,yl,xr,yr))
         # Compute A
         A = np.zeros((4,4))
         A[0,:] = np.array([Cl[2,0]*yl - Cl[1,0], Cl[2,1]*yl - Cl[1,1], Cl[2,2]*yl - Cl[1,2], Cl[2,3]*yl - Cl[1,3]])
@@ -109,7 +108,6 @@ def triangulate(C1, pts1, C2, pts2):
         A[3,:] = np.array([Cr[0,0] - Cr[2,0]*xr, Cr[0,1] - Cr[2,1]*xr, Cr[0,2] - Cr[2,2]*xr, Cr[0,3] - Cr[2,3]*xr])
         # Compute w
         u, s, vT = np.linalg.svd(A)
-        print('SVD:\n\tu=\n{}\n\ts=\n{}\n\tvT=\n{}'.format(u,s,vT))
         w = vT[-1]
         # Convert to non-homogeneous coord, then save
         w /= w[-1]
@@ -131,8 +129,8 @@ def triangulate(C1, pts1, C2, pts2):
         err += np.sum(np.square(x1-x1_hat))
         err += np.sum(np.square(x2-x2_hat))
         # Debug
-        print('x1, x1_hat: ({}), ({})'.format(x1, x1_hat))
-        print('x2, x2_hat: ({}), ({})'.format(x2, x2_hat))
+#        print('x1, x1_hat: ({}), ({})'.format(x1, x1_hat))
+#        print('x2, x2_hat: ({}), ({})'.format(x2, x2_hat))
     return P, err
 
 
@@ -148,8 +146,43 @@ Q4.1: 3D visualization of the temple images.
 
 '''
 def epipolarCorrespondence(im1, im2, F, x1, y1):
-    # Replace pass by your implementation
-    pass
+    # Compute unit epipolar line
+    l = F@np.array([x1, y1, 1])
+    s = np.sqrt(l[0]**2+l[1]**2)
+    l = l/s
+    # Compute x coord to search
+    ye = im2.shape[0]-1
+    ys = 0
+    xs = -(l[1] * ys + l[2])/l[0]
+    xe = -(l[1] * ye + l[2])/l[0]
+    x2 = int((xs + xe)/2)
+    # Grab pixels around (x1,y1)
+    window = 5 # window size
+    template = im1[y1-window:y1+window+1,x1-window:x1+window+1,:]
+    template_g = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
+    template_g = template_g/np.sum(template_g)
+    # Check along x2; assume pr is within k pixels of pl
+    k = 50
+    y_start = max(window, y1-k)
+    y_end = min(ye-window, y1+k)
+    error_best = float('inf')
+    y2 = 0
+    for y_search in range(y_start, y_end+1):
+        # Get relevant slice
+        cur_slice = im2[y_search-window:y_search+window+1,
+            x2-window:x2+window+1,:]
+        cur_slice_g = cv2.cvtColor(cur_slice, cv2.COLOR_BGR2GRAY)
+        cur_slice_g = cur_slice_g/np.sum(cur_slice_g)
+        # Compute error
+        error = template_g - cur_slice_g
+        error = np.linalg.norm(error)
+#        print('{}, error = {}'.format(y_search, error))
+        # Update as necesary
+        if(error < error_best):
+            error_best = error
+            y2 = y_search
+#    print('Best match: ({},{})'.format(x2, y2))
+    return x2, y2
 
 '''
 Q5.1: Extra Credit RANSAC method.
@@ -268,12 +301,32 @@ if __name__ == "__main__":
     # Compute C1 and C2
     C1 = K1 @ M1
     C2 = K2 @ M2
-    #[w, err] = triangulate(C1, pts1, C2, pts2)
     [P, err] = triangulate(C1, pts1, C2, pts2)
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.scatter(P[:,0], P[:,1], P[:,2])
-    plt.show()
+    # Try different configurations
+#    for i in range(0,4):
+#        C2 = K2 @ M2s[:,:,i]
+#        [P, err] = triangulate(C1, pts1, C2, pts2)
+#        print('Config {}: error = {}'.format(i, err))
+#        fig = plt.figure()
+#        ax = fig.add_subplot(projection='3d')
+#        ax.scatter(P[:,0], P[:,1], P[:,2])
+#        plt.show()
+    # Display results
+#    fig = plt.figure()
+#    ax = fig.add_subplot(projection='3d')
+#    ax.scatter(P[:,0], P[:,1], P[:,2])
+#    plt.show()
+
+    # # 4.1. - Correspondence
+    # Test cases: img1 -> img2
+    # (69, 137) -> (67,124)
+    # (520, 234) -> (517, 183)
+    epipolarCorrespondence(img1, img2, F, 69, 137)
+    # get templeCoords
+    templeCoords = np.load('../data/templeCoords.npz')
+    img1_x = templeCoords['x1']
+    img1_y = templeCoords['y1']
+    print(templeCoords)
     pass
     
 
