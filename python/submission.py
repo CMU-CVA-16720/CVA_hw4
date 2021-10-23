@@ -69,8 +69,10 @@ Q3.1: Compute the essential matrix E.
     Output: E, the essential matrix
 '''
 def essentialMatrix(F, K1, K2):
-    # Replace pass by your implementation
-    pass
+    # F = Kr^(-T) E Kl^(-1), so E = KrT F Kl
+    Kl = K1
+    Kr = K2
+    return (Kr.T @ F @ Kl)
 
 
 '''
@@ -164,7 +166,7 @@ def bundleAdjustment(K1, M1, p1, K2, M2_init, p2, P_init):
 
 
 if __name__ == "__main__":
-    # # 8 point correspond:
+    # # 2.1 - 8 point correspond:
     # Get points
     some_corresp = np.load('../data/some_corresp.npz')
     pts1 = some_corresp['pts1']
@@ -176,8 +178,54 @@ if __name__ == "__main__":
     M = np.max([imwidth, imheight])
     print('Image: H = {}, W = {}'.format(imheight, imwidth))
     # Compute fundamental matrix
-    F = eightpoint(pts1, pts2, M)
+#    F = eightpoint(pts1, pts2, M)
     # Visualize results
-    helper.displayEpipolarF(img1, img2, F)
+#    helper.displayEpipolarF(img1, img2, F)
+    # Save results
+#    np.savez_compressed('q2_1.npz',
+#        F=F,
+#        M=M
+#    )
+
+    # # 3.1. - Essential matrix
+    # Get intrinsics
+    intrinsics = np.load('../data/intrinsics.npz')
+    K1 = intrinsics['K1']
+    K2 = intrinsics['K2']
+    # Get F
+    q2_1 = np.load('q2_1.npz')
+    F = q2_1['F']
+    # Compute E
+#    E = essentialMatrix(F, K1, K2)
+    # Save results
+#    np.savez_compressed('q3_1.npz',
+#       E=E,
+#       F=F
+#    )
+
+    # # 3.2. - Triangulate
+    # Get E
+    q3_1 = np.load('q3_1.npz')
+    E = q3_1['E']
+    # Compute M2 possibilities
+    M2s = helper.camera2(E) # [:,:,i] for 4 possibilities i=[0,3]
+    print('M2 possibilities:')
+    for i in range(0,4):
+        print('{}:\n{}'.format(i,M2s[:,:,i]))
+    # 2 and 3 look like rotation is wrong
+    # Can't tell if 0 or 1 is correct;
+    # img2 looks like it's on left of img1, so go with 0 for now
+    M1 = np.zeros((3,4))
+    M1[:,0:3] = np.identity(3)
+    M2 = M2s[:,:,0]
+    # Compute C1 and C2
+    C1 = K1 @ M1
+    C2 = K2 @ M2
+    #[w, err] = triangulate(C1, pts1, C2, pts2)
+    triangulate(C1, pts1, C2, pts2)
+    pass
+    
+
+
     
 
