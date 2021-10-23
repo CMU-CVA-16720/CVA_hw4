@@ -295,9 +295,10 @@ if __name__ == "__main__":
     # 2 and 3 look like rotation is wrong
     # Can't tell if 0 or 1 is correct;
     # img2 looks like it's on left of img1, so go with 0 for now
+    # Reached end of manadatory coding; looks like 1 is the correct one
     M1 = np.zeros((3,4))
     M1[:,0:3] = np.identity(3)
-    M2 = M2s[:,:,0]
+    M2 = M2s[:,:,1]
     # Compute C1 and C2
     C1 = K1 @ M1
     C2 = K2 @ M2
@@ -321,12 +322,29 @@ if __name__ == "__main__":
     # Test cases: img1 -> img2
     # (69, 137) -> (67,124)
     # (520, 234) -> (517, 183)
-    epipolarCorrespondence(img1, img2, F, 69, 137)
+#    print('Test 1: (69,137) -> ({})'.format(epipolarCorrespondence(img1, img2, F, 69, 137)))
+#    print('Test 2: (520,234) -> ({})'.format(epipolarCorrespondence(img1, img2, F, 520, 234)))
+    # GUI test
+#    helper.epipolarMatchGUI(img1, img2, F)
     # get templeCoords
     templeCoords = np.load('../data/templeCoords.npz')
     img1_x = templeCoords['x1']
     img1_y = templeCoords['y1']
-    print(templeCoords)
+    # Compute templeCoords for img2
+    img2_x = np.zeros(img1_x.shape)
+    img2_y = np.zeros(img1_y.shape)
+    for i in range(0, img1_x.shape[0]):
+        [img2_x[i,0], img2_y[i,0]] = epipolarCorrespondence(img1, img2, F, img1_x[i,0], img1_y[i,0])
+        print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
+            img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
+            np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
+    # Compute 3D coordinates using triangulate
+    [P2, err2] = triangulate(C1, np.append(img1_x,img1_y,axis=1), C2, np.append(img2_x,img2_y,axis=1))
+    # Display results
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(P2[:,0], P2[:,1], P2[:,2])
+    plt.show()
     pass
     
 
