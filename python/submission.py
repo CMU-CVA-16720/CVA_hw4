@@ -3,19 +3,62 @@ Homework4.
 Replace 'pass' by your implementation.
 """
 
-# Insert your package here
+import numpy as np
+import cv2
 
+import util
+import helper
 
 '''
 Q2.1: Eight Point Algorithm
-    Input:  pts1, Nx2 Matrix
-            pts2, Nx2 Matrix
+    Input:  pts1, Nx2 Matrix, contains (x,y)
+            pts2, Nx2 Matrix, constains (x,y)
             M, a scalar parameter computed as max (imwidth, imheight)
     Output: F, the fundamental matrix
 '''
 def eightpoint(pts1, pts2, M):
-    # Replace pass by your implementation
-    pass
+    # Correspondence equation: prT * F * pl = 0
+    # xl*xr*f11 + xr*yl*f12 + xr*f13 + xl*yr*f21 + yl*yr*f22 + yr*f23 + xl*f31 + yl*f32 + f33 = 0
+    # Solve for f = [f11, f12,... f32, f33]T
+    # Get parameters
+    N = pts1.shape[0]
+    # Compute normalization matrix
+    T = np.zeros((3,3))
+    T[[0,1],[0,1]] = 1/M
+    T[2,2] = 1
+    # Set up matrix A, where Af=0, and A = num_pts x 9
+    # Each row: xl*xr + xr*yl + xr + xl*yr + yl*yr + yr + xl + yl + 1
+    A = np.ones((N,9))
+    for i in range(0,N):
+        # Get coordinates
+        xl, yl = pts1[i,:]
+        xr, yr = pts2[i,:]
+        print('Coord: ({},{}), ({},{})'.format(xl,yl,xr,yr))
+        # Normalize coord
+        xl,yl,_ = T@[xl,yl,1]
+        xr,yr,_ = T@[xr,yr,1]
+        print('Norm : ({},{}), ({},{})'.format(xl,yl,xr,yr))
+        # Update A
+        A[i,0] = xl*xr
+        A[i,1] = xr*yl
+        A[i,2] = xr
+        A[i,3] = xl*yr
+        A[i,4] = yl*yr
+        A[i,5] = yr
+        A[i,6] = xl
+        A[i,7] = yl
+    # Compute f_norm using A
+    u, s, vT = np.linalg.svd(A)
+    print('SVD:\n\tu=\n{}\n\ts=\n{}\n\tvT=\n{}'.format(u,s,vT))
+    f = vT[-1]
+    print('f_norm = {}'.format(f))
+    # Reshape, refine, unscale f
+    F = np.reshape(f,(3,3))
+    F = util.refineF(F,pts1/M,pts2/M)
+    F = np.transpose(T) @ F @ T
+    print('F      = {}'.format(F))
+    return F
+
 
 
 '''
@@ -118,3 +161,23 @@ Q5.3 Extra Credit  Bundle adjustment.
 def bundleAdjustment(K1, M1, p1, K2, M2_init, p2, P_init):
     # Replace pass by your implementation
     pass
+
+
+if __name__ == "__main__":
+    # # 8 point correspond:
+    # Get points
+    some_corresp = np.load('../data/some_corresp.npz')
+    pts1 = some_corresp['pts1']
+    pts2 = some_corresp['pts2']
+    # Get dimensions
+    img1 = cv2.imread('../data/im1.png')
+    img2 = cv2.imread('../data/im2.png')
+    imheight, imwidth, _ = img1.shape
+    M = np.max([imwidth, imheight])
+    print('Image: H = {}, W = {}'.format(imheight, imwidth))
+    # Compute fundamental matrix
+    F = eightpoint(pts1, pts2, M)
+    # Visualize results
+    helper.displayEpipolarF(img1, img2, F)
+    
+
