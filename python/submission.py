@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 
 import util
 import helper
+from findM2 import findM2
 
 '''
 Q2.1: Eight Point Algorithm
@@ -289,35 +290,22 @@ if __name__ == "__main__":
     q3_1 = np.load('q3_1.npz')
     E = q3_1['E']
     print('Essential matrix:\n{}'.format(E))
-    # Compute M2 possibilities
-    M2s = helper.camera2(E) # [:,:,i] for 4 possibilities i=[0,3]
-    # 2 and 3 look like rotation is wrong
-    # Can't tell if 0 or 1 is correct;
-    # img2 looks like it's on left of img1, so go with 0 for now
-    # Reached end of manadatory coding; looks like 0 is the correct one
+    # Compute M1, C1
     M1 = np.zeros((3,4))
     M1[:,0:3] = np.identity(3)
-    M2 = M2s[:,:,0]
-    print('M2:\n{}'.format(M2))
-    # Compute C1 and C2
     C1 = K1 @ M1
-    C2 = K2 @ M2
+    # Compute and get M2, C2
+    findM2()
+    q3_3 = np.load('q3_3.npz')
+    M2 = q3_3['M2']
+    C2 = q3_3['C2']
+    # Compute coordinates
     [P, err] = triangulate(C1, pts1, C2, pts2)
     print('Reprojection error: {}'.format(err))
-    # Try different configurations
-#    for i in range(0,4):
-#        C2 = K2 @ M2s[:,:,i]
-#        [P, err] = triangulate(C1, pts1, C2, pts2)
-#        print('Config {}: error = {}'.format(i, err))
-#        fig = plt.figure()
-#        ax = fig.add_subplot(projection='3d')
-#        ax.scatter(P[:,0], P[:,1], P[:,2])
-#        plt.show()
-    # Display results
-#    fig = plt.figure()
-#    ax = fig.add_subplot(projection='3d')
-#    ax.scatter(P[:,0], P[:,1], P[:,2])
-#    plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(P[:,0], P[:,1], P[:,2])
+    plt.show()
 
     # # 4.1. - Correspondence
     # Test cases: img1 -> img2
