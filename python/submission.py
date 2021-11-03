@@ -146,7 +146,7 @@ Q4.1: 3D visualization of the temple images.
             y2, y-coordinates of the pixel on im2
 
 '''
-def epipolarCorrespondence(im1, im2, F, x1, y1, window = 5):
+def epipolarCorrespondence(im1, im2, F, x1, y1, window = 10):
     # Compute unit epipolar line
     l = F@np.array([x1, y1, 1])
     s = np.sqrt(l[0]**2+l[1]**2)
