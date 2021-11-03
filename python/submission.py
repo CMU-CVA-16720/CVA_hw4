@@ -146,7 +146,7 @@ Q4.1: 3D visualization of the temple images.
             y2, y-coordinates of the pixel on im2
 
 '''
-def epipolarCorrespondence(im1, im2, F, x1, y1):
+def epipolarCorrespondence(im1, im2, F, x1, y1, window = 5):
     # Compute unit epipolar line
     l = F@np.array([x1, y1, 1])
     s = np.sqrt(l[0]**2+l[1]**2)
@@ -158,7 +158,6 @@ def epipolarCorrespondence(im1, im2, F, x1, y1):
     xe = -(l[1] * ye + l[2])/l[0]
     x2 = int((xs + xe)/2)
     # Grab pixels around (x1,y1)
-    window = 5 # window size
     template = im1[y1-window:y1+window+1,x1-window:x1+window+1,:]
     template_g = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
     template_g = template_g/np.sum(template_g)
@@ -301,11 +300,12 @@ if __name__ == "__main__":
     C2 = q3_3['C2']
     # Compute coordinates
     [P, err] = triangulate(C1, pts1, C2, pts2)
-    print('Reprojection error: {}'.format(err))
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.scatter(P[:,0], P[:,1], P[:,2])
-    plt.show()
+    # Graph results
+#    print('Reprojection error: {}'.format(err))
+#    fig = plt.figure()
+#    ax = fig.add_subplot(projection='3d')
+#    ax.scatter(P[:,0], P[:,1], P[:,2])
+#    plt.show()
 
     # # 4.1. - Correspondence
     # Test cases: img1 -> img2
