@@ -275,6 +275,7 @@ if __name__ == "__main__":
     # Get F
     q2_1 = np.load('q2_1.npz')
     F = q2_1['F']
+    print('Fundamental matrix:\n{}'.format(F))
     # Compute E
 #    E = essentialMatrix(F, K1, K2)
     # Save results
@@ -287,18 +288,17 @@ if __name__ == "__main__":
     # Get E
     q3_1 = np.load('q3_1.npz')
     E = q3_1['E']
+    print('Essential matrix:\n{}'.format(E))
     # Compute M2 possibilities
     M2s = helper.camera2(E) # [:,:,i] for 4 possibilities i=[0,3]
-    print('M2 possibilities:')
-    for i in range(0,4):
-        print('{}:\n{}'.format(i,M2s[:,:,i]))
     # 2 and 3 look like rotation is wrong
     # Can't tell if 0 or 1 is correct;
     # img2 looks like it's on left of img1, so go with 0 for now
-    # Reached end of manadatory coding; looks like 1 is the correct one
+    # Reached end of manadatory coding; looks like 0 is the correct one
     M1 = np.zeros((3,4))
     M1[:,0:3] = np.identity(3)
-    M2 = M2s[:,:,1]
+    M2 = M2s[:,:,0]
+    print('M2:\n{}'.format(M2))
     # Compute C1 and C2
     C1 = K1 @ M1
     C2 = K2 @ M2
@@ -336,11 +336,12 @@ if __name__ == "__main__":
     img2_y = np.zeros(img1_y.shape)
     for i in range(0, img1_x.shape[0]):
         [img2_x[i,0], img2_y[i,0]] = epipolarCorrespondence(img1, img2, F, img1_x[i,0], img1_y[i,0])
-        print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
-            img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
-            np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
+#        print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
+#            img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
+#            np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
     # Compute 3D coordinates using triangulate
     [P2, err2] = triangulate(C1, np.append(img1_x,img1_y,axis=1), C2, np.append(img2_x,img2_y,axis=1))
+    print('Reprojection error 2: {}'.format(err2))
     # Display results
     fig = plt.figure()
     ax = fig.add_subplot(projection='3d')
