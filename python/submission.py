@@ -117,7 +117,7 @@ def triangulate(C1, pts1, C2, pts2):
     for i in range(0,N):
         # Get x1 and x2
         x1 = pts1[i,:]
-        x2 = pts1[i,:]
+        x2 = pts2[i,:]
         # Compute x1_hat, x2_hat
         x1_hat = C1@np.append(P[i,:],1)
         x1_hat /= x1_hat[-1]
@@ -129,8 +129,8 @@ def triangulate(C1, pts1, C2, pts2):
         err += np.sum(np.square(x1-x1_hat))
         err += np.sum(np.square(x2-x2_hat))
         # Debug
-#        print('x1, x1_hat: ({}), ({})'.format(x1, x1_hat))
-#        print('x2, x2_hat: ({}), ({})'.format(x2, x2_hat))
+        # print('x1, x1_hat: ({}), ({})'.format(x1, x1_hat))
+        # print('x2, x2_hat: ({}), ({})'.format(x2, x2_hat))
     return P, err
 
 
@@ -303,6 +303,7 @@ if __name__ == "__main__":
     C1 = K1 @ M1
     C2 = K2 @ M2
     [P, err] = triangulate(C1, pts1, C2, pts2)
+    print('Reprojection error: {}'.format(err))
     # Try different configurations
 #    for i in range(0,4):
 #        C2 = K2 @ M2s[:,:,i]
