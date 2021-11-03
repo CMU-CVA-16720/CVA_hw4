@@ -9,7 +9,7 @@ import numpy as np
 import helper
 import submission
 
-if __name__ == "__main__":
+def findM2():
     # Get points
     some_corresp = np.load('../data/some_corresp.npz')
     pts1 = some_corresp['pts1']
@@ -36,6 +36,7 @@ if __name__ == "__main__":
     # Therefore pick M2 with most positive Z values
     M2_indx = np.argmax(np.count_nonzero(P_array[:,2::3]>0,axis=0))
     M2 = M2s[:,:,M2_indx]
+    C2 = K2 @ M2s[:,:,M2_indx]
     P = P_array[:,M2_indx*i:3*M2_indx+3]
     # Save M2, C2, P
     np.savez_compressed('q3_3.npz',
@@ -43,4 +44,6 @@ if __name__ == "__main__":
        C2=C2,
        P=P
     )
-    
+
+if __name__ == "__main__":
+    findM2()
