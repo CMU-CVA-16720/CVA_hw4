@@ -324,9 +324,10 @@ if __name__ == "__main__":
     img2_y = np.zeros(img1_y.shape)
     for i in range(0, img1_x.shape[0]):
         [img2_x[i,0], img2_y[i,0]] = epipolarCorrespondence(img1, img2, F, img1_x[i,0], img1_y[i,0])
-#        print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
-#            img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
-#            np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
+        if(np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])]) > 20):
+            print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
+                img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
+                np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
     # Compute 3D coordinates using triangulate
     [P2, err2] = triangulate(C1, np.append(img1_x,img1_y,axis=1), C2, np.append(img2_x,img2_y,axis=1))
     print('Reprojection error 2: {}'.format(err2))
