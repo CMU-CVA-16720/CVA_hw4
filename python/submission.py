@@ -156,21 +156,24 @@ def epipolarCorrespondence(im1, im2, F, x1, y1, window = 10):
     ys = 0
     xs = -(l[1] * ys + l[2])/l[0]
     xe = -(l[1] * ye + l[2])/l[0]
-    x2 = int((xs + xe)/2)
+    x = lambda y: int(-(l[1] * y + l[2])/l[0])
     # Grab pixels around (x1,y1)
     template = im1[y1-window:y1+window+1,x1-window:x1+window+1,:]
     template_g = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
     template_g = template_g/np.sum(template_g)
-    # Check along x2; assume pr is within k pixels of pl
+    # Check along epipolar line; assume pr is within k pixels of pl
     k = 50
     y_start = max(window, y1-k)
     y_end = min(ye-window, y1+k)
     error_best = float('inf')
+    x2 = 0
     y2 = 0
     for y_search in range(y_start, y_end+1):
+        # Compute x coordinate
+        x_search = x(y_search)
         # Get relevant slice
         cur_slice = im2[y_search-window:y_search+window+1,
-            x2-window:x2+window+1,:]
+            x_search-window:x_search+window+1,:]
         cur_slice_g = cv2.cvtColor(cur_slice, cv2.COLOR_BGR2GRAY)
         cur_slice_g = cur_slice_g/np.sum(cur_slice_g)
         # Compute error
@@ -180,6 +183,7 @@ def epipolarCorrespondence(im1, im2, F, x1, y1, window = 10):
         # Update as necesary
         if(error < error_best):
             error_best = error
+            x2 = x_search
             y2 = y_search
 #    print('Best match: ({},{})'.format(x2, y2))
     return x2, y2
