@@ -162,7 +162,7 @@ def epipolarCorrespondence(im1, im2, F, x1, y1, window = 10):
     template_g = cv2.cvtColor(template, cv2.COLOR_BGR2GRAY)
     template_g = template_g/np.sum(template_g)
     # Check along epipolar line; assume pr is within k pixels of pl
-    k = 50
+    k = 40
     y_start = max(window, y1-k)
     y_end = min(ye-window, y1+k)
     error_best = float('inf')
