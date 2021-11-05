@@ -6,6 +6,7 @@ Replace 'pass' by your implementation.
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import math
 
 import util
 import helper
@@ -196,8 +197,15 @@ Q5.2:Extra Credit  Rodrigues formula.
     Output: R, a rotation matrix
 '''
 def rodrigues(r):
-    # Replace pass by your implementation
-    pass
+    theta = np.linalg.norm(r)
+    r /= theta
+    K = np.array([
+        [0,-r[2,0],r[1,0]],
+        [r[2,0],0,-r[0,0]],
+        [-r[1,0],r[0,0],0]
+    ])
+    R = np.identity(3)+math.sin(theta)*K+(1-math.cos(theta))*(K@K)
+    return R
 
 '''
 Q5.2:Extra Credit  Inverse Rodrigues formula.
@@ -205,8 +213,14 @@ Q5.2:Extra Credit  Inverse Rodrigues formula.
     Output: r, a 3x1 vector
 '''
 def invRodrigues(R):
-    # Replace pass by your implementation
-    pass
+    theta = math.acos((np.trace(R)-1)/2)
+    w = 1/(2*math.sin(theta))*np.array([
+        [R[2,1]-R[1,2]],
+        [R[0,2]-R[2,0]],
+        [R[1,0]-R[0,1]]
+    ])
+    r = theta * w
+    return r
 
 '''
 Q5.3: Extra Credit Rodrigues residual.
@@ -315,19 +329,39 @@ if __name__ == "__main__":
     img2_y = np.zeros(img1_y.shape)
     for i in range(0, img1_x.shape[0]):
         [img2_x[i,0], img2_y[i,0]] = epipolarCorrespondence(img1, img2, F, img1_x[i,0], img1_y[i,0])
-        if(np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])]) > 20):
-            print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
-                img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
-                np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
+        # if(np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])]) > 20):
+        #     print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
+        #         img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
+        #         np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
     # Compute 3D coordinates using triangulate
     [P2, err2] = triangulate(C1, np.append(img1_x,img1_y,axis=1), C2, np.append(img2_x,img2_y,axis=1))
     print('Reprojection error 2: {}'.format(err2))
     # Display results
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.scatter(P2[:,0], P2[:,1], P2[:,2])
-    plt.show()
-    pass
+#    fig = plt.figure()
+#    ax = fig.add_subplot(projection='3d')
+#    ax.scatter(P2[:,0], P2[:,1], P2[:,2])
+#    plt.show()
+    # Save results
+    np.savez_compressed('q4_2.npz',
+        F=F,
+        M1=M1,
+        M2=M2,
+        C1=C1,
+        C2=C2
+    )
+    
+    # # 5.2. Rodrigues & Inv(Rodrigues)
+    # Test cases
+    rot_mag = 2.3
+    #R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
+    #R = np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
+    R = np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
+    print('R = \n{}'.format(R))
+    w = invRodrigues(R)
+    print('w = \n{}'.format(w))
+    R = rodrigues(w)
+    print('R = \n{}'.format(R))
+    
     
 
 
