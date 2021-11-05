@@ -188,8 +188,38 @@ Q5.1: Extra Credit RANSAC method.
             inliers, Nx1 bool vector set to true for inliers
 '''
 def ransacF(pts1, pts2, M, nIters=1000, tol=0.42):
-    # Replace pass by your implementation
-    pass
+    F_best = np.zeros((3,3))
+    inlier_best = 0
+    inliers_best = np.zeros(pts1.shape[0])
+    for i in range(0,nIters):
+        print('Loop: {}/{}'.format(i, nIters))
+        # Randomly pick 8 pairs of points
+        sample_indx = np.random.choice(pts1.shape[0],8,replace=False)
+        pts1_sample = pts1[sample_indx,:]
+        pts2_sample = pts2[sample_indx,:]
+        # Compute F using 8 points
+        F_cur = eightpoint(pts1, pts2, M)
+        # Compute inliers
+        inlier_cur = 0
+        inliers_cur = np.zeros(pts1.shape[0])
+        for j in range(0,pts1.shape[0]):
+            # Points
+            pl = np.append(pts1[j,:],1)
+            pr = np.append(pts2[j,:],1)
+            # Compute line
+            line = F@pr
+            # Compute distance
+            dist = np.transpose(pl)@line/math.sqrt(line[0]**2+line[1]**2)
+            if(dist < tol):
+                inlier_cur += 1
+                inliers_cur[j] = True
+        # Update best as necessary
+        if(inlier_cur > inlier_best):
+            inlier_best = inlier_cur
+            inliers_best = inliers_cur
+            F_best = F_cur
+            print('** Inlier update: {}/{} ({}%)'.format(inlier_best,pts1.shape[0], inlier_best*100/pts1.shape[0]))
+    return [F_best, inliers_best]
 
 '''
 Q5.2:Extra Credit  Rodrigues formula.
@@ -349,7 +379,14 @@ if __name__ == "__main__":
         C1=C1,
         C2=C2
     )
-    
+
+    # # 5.1. F RANSAC
+    some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
+    pts1_noisy = some_corresp_noisy['pts1']
+    pts2_noisy = some_corresp_noisy['pts2']
+    [F, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 100)
+
+
     # # 5.2. Rodrigues & Inv(Rodrigues)
     # Test cases
     rot_mag = 2.3
