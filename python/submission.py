@@ -124,9 +124,6 @@ def triangulate(C1, pts1, C2, pts2):
         # Update error
         err += np.sum(np.square(x1-x1_hat))
         err += np.sum(np.square(x2-x2_hat))
-        # Debug
-        # print('x1, x1_hat: ({}), ({})'.format(x1, x1_hat))
-        # print('x2, x2_hat: ({}), ({})'.format(x2, x2_hat))
     return P, err
 
 
@@ -174,13 +171,11 @@ def epipolarCorrespondence(im1, im2, F, x1, y1, window = 10):
         # Compute error
         error = template_g - cur_slice_g
         error = np.linalg.norm(error)
-#        print('{}, error = {}'.format(y_search, error))
         # Update as necesary
         if(error < error_best):
             error_best = error
             x2 = x_search
             y2 = y_search
-#    print('Best match: ({},{})'.format(x2, y2))
     return x2, y2
 
 '''
