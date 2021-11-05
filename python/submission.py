@@ -353,9 +353,9 @@ if __name__ == "__main__":
     # # 5.2. Rodrigues & Inv(Rodrigues)
     # Test cases
     rot_mag = 2.3
-    #R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
-    #R = np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
-    R = np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
+    R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
+    #R = R@np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
+    R = R@np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
     print('R = \n{}'.format(R))
     w = invRodrigues(R)
     print('w = \n{}'.format(w))
