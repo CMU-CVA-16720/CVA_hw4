@@ -302,13 +302,10 @@ if __name__ == "__main__":
 #    plt.show()
 
     # # 4.1. - Correspondence
-    # Test cases: img1 -> img2
-    # (69, 137) -> (67,124)
-    # (520, 234) -> (517, 183)
-#    print('Test 1: (69,137) -> ({})'.format(epipolarCorrespondence(img1, img2, F, 69, 137)))
-#    print('Test 2: (520,234) -> ({})'.format(epipolarCorrespondence(img1, img2, F, 520, 234)))
-    # GUI test
+    # GUI test; used to generate q4_1.npz
 #    helper.epipolarMatchGUI(img1, img2, F)
+
+    # # 4.2. - Point cloud
     # get templeCoords
     templeCoords = np.load('../data/templeCoords.npz')
     img1_x = templeCoords['x1']
