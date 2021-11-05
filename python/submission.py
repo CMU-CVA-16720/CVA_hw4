@@ -35,11 +35,9 @@ def eightpoint(pts1, pts2, M):
         # Get coordinates
         xl, yl = pts1[i,:]
         xr, yr = pts2[i,:]
-        print('Coord: ({},{}), ({},{})'.format(xl,yl,xr,yr))
         # Normalize coord
         xl,yl,_ = T@[xl,yl,1]
         xr,yr,_ = T@[xr,yr,1]
-        print('Norm : ({},{}), ({},{})'.format(xl,yl,xr,yr))
         # Update A
         A[i,0] = xl*xr
         A[i,1] = xr*yl
@@ -51,14 +49,11 @@ def eightpoint(pts1, pts2, M):
         A[i,7] = yl
     # Compute f_norm using A
     u, s, vT = np.linalg.svd(A)
-    print('SVD:\n\tu=\n{}\n\ts=\n{}\n\tvT=\n{}'.format(u,s,vT))
     f = vT[-1]
-    print('f_norm = {}'.format(f))
     # Reshape, refine, unscale f
     F = np.reshape(f,(3,3))
     F = util.refineF(F,pts1/M,pts2/M)
     F = np.transpose(T) @ F @ T
-    print('F      = {}'.format(F))
     return F
 
 
