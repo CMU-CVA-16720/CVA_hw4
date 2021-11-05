@@ -207,9 +207,10 @@ def ransacF(pts1, pts2, M, nIters=1000, tol=0.42):
             pl = np.append(pts1[j,:],1)
             pr = np.append(pts2[j,:],1)
             # Compute line
-            line = np.transpose(F_cur)@pr
+            #line = np.transpose(F_cur)@pr
+            line = F_cur@pl
             # Compute distance
-            dist = np.transpose(pl)@line/math.sqrt(line[0]**2+line[1]**2)
+            dist = np.transpose(pr)@line/math.sqrt(line[0]**2+line[1]**2)
             if(dist < tol):
                 inlier_cur += 1
                 inliers_cur[j] = True
@@ -384,7 +385,9 @@ if __name__ == "__main__":
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 100)
+    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 10)
+    print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
+    print('F:\n{}'.format(F/F[-1,-1]))
 
 
     # # 5.2. Rodrigues & Inv(Rodrigues)
