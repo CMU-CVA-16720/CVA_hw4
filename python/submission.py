@@ -210,7 +210,8 @@ def ransacF(pts1, pts2, M, nIters=1000, tol=0.42):
             #line = np.transpose(F_cur)@pr
             line = F_cur@pl
             # Compute distance
-            dist = np.transpose(pr)@line/math.sqrt(line[0]**2+line[1]**2)
+            #dist = abs(np.transpose(pr)@line/math.sqrt(line[0]**2+line[1]**2))
+            dist = abs(np.transpose(pr)@line)
             if(dist < tol):
                 inlier_cur += 1
                 inliers_cur[j] = True
@@ -385,9 +386,12 @@ if __name__ == "__main__":
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 10)
+    #[Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 10)
+    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 100, 2e-3)
+    Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
+    print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
     print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
-    print('F:\n{}'.format(F/F[-1,-1]))
+    helper.displayEpipolarF(img1, img2, Fransac)
 
 
     # # 5.2. Rodrigues & Inv(Rodrigues)
