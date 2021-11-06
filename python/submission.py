@@ -187,12 +187,12 @@ Q5.1: Extra Credit RANSAC method.
     Output: F, the fundamental matrix
             inliers, Nx1 bool vector set to true for inliers
 '''
-def ransacF(pts1, pts2, M, nIters=1000, tol=0.42):
+def ransacF(pts1, pts2, M, nIters=1000, tol=1.5):
     F_best = np.zeros((3,3))
     inlier_best = 0
     inliers_best = np.zeros(pts1.shape[0])
     for i in range(0,nIters):
-        print('Loop: {}/{}'.format(i, nIters))
+        print('Loop: {}/{}, {}'.format(i, nIters, inlier_best))
         # Randomly pick 8 pairs of points
         sample_indx = np.random.choice(pts1.shape[0],8,replace=False)
         pts1_sample = pts1[sample_indx,:]
@@ -207,11 +207,10 @@ def ransacF(pts1, pts2, M, nIters=1000, tol=0.42):
             pl = np.append(pts1[j,:],1)
             pr = np.append(pts2[j,:],1)
             # Compute line
-            #line = np.transpose(F_cur)@pr
             line = F_cur@pl
-            # Compute distance
-            #dist = abs(np.transpose(pr)@line/math.sqrt(line[0]**2+line[1]**2))
-            dist = abs(np.transpose(pr)@line)
+            # Compute geometric distance
+            dist = abs(np.transpose(pr)@line/math.sqrt(line[0]**2+line[1]**2))
+            # Check if inlier
             if(dist < tol):
                 inlier_cur += 1
                 inliers_cur[j] = True
@@ -386,25 +385,34 @@ if __name__ == "__main__":
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-    #[Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 10)
-    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 100, 2e-3)
+    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M)
     Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
     print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
     print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
+    np.savez_compressed('q5_1.npz',
+      Fnoisy=Fnoisy,
+      Fransac=Fransac,
+      inliers=inliers
+    )
+    q5_1 = np.load('q5_1.npz')
+    Fnoisy = q5_1['Fnoisy']
+    Fransac = q5_1['Fransac']
+    inliers = q5_1['inliers']
     helper.displayEpipolarF(img1, img2, Fransac)
+    #helper.displayEpipolarF(img1, img2, Fnoisy)
 
 
     # # 5.2. Rodrigues & Inv(Rodrigues)
-    # Test cases
-    rot_mag = 2.3
-    R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
-    #R = R@np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
-    R = R@np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
-    print('R = \n{}'.format(R))
-    w = invRodrigues(R)
-    print('w = \n{}'.format(w))
-    R = rodrigues(w)
-    print('R = \n{}'.format(R))
+    # # Test cases
+    # rot_mag = 2.3
+    # R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
+    # #R = R@np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
+    # R = R@np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
+    # print('R = \n{}'.format(R))
+    # w = invRodrigues(R)
+    # print('w = \n{}'.format(w))
+    # R = rodrigues(w)
+    # print('R = \n{}'.format(R))
     
     
 
