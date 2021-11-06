@@ -386,7 +386,7 @@ if __name__ == "__main__":
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 1)
+    # [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M)
     # Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
     # print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
     # print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
@@ -416,14 +416,16 @@ if __name__ == "__main__":
     print('R = \n{}'.format(R))
 
     # # 5.3. Bundle adjustment
-    # Calculate optimized M2 and w
+    # Perform initial triangulation using inliers
+    pts1_in = pts1_noisy[inliers,:]
+    pts2_in = pts2_noisy[inliers,:]
     Eransac = essentialMatrix(Fransac, K1, K2)
-    M2_init, _, _ = findM2_EC(pts1_noisy, pts2_noisy, K1, K2, Eransac)
-    [w_init, _] = triangulate(C1, pts1_noisy, K2@M2_init, pts2_noisy)
-    fig = plt.figure()
-    ax = fig.add_subplot(projection='3d')
-    ax.scatter(w_init[:,0], w_init[:,1], w_init[:,2])
-    plt.show()
+    M2_init, _, _ = findM2_EC(pts1_in, pts2_in, K1, K2, Eransac)
+    [w_init, _] = triangulate(C1, pts1_in, K2@M2_init, pts2_in)
+    # fig = plt.figure()
+    # ax = fig.add_subplot(projection='3d')
+    # ax.scatter(w_init[:,0], w_init[:,1], w_init[:,2])
+    # plt.show()
     [M2, w] = bundleAdjustment(K1, M1, pts1_noisy, K2, M2_init, pts2_noisy, w_init)
     
     
