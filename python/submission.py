@@ -10,7 +10,7 @@ import math
 
 import util
 import helper
-from findM2 import findM2
+from findM2 import *
 
 '''
 Q2.1: Eight Point Algorithm
@@ -190,7 +190,7 @@ Q5.1: Extra Credit RANSAC method.
 def ransacF(pts1, pts2, M, nIters=1000, tol=1.5):
     F_best = np.zeros((3,3))
     inlier_best = 0
-    inliers_best = np.zeros(pts1.shape[0])
+    inliers_best = np.zeros(pts1.shape[0],dtype=bool)
     for i in range(0,nIters):
         print('Loop: {}/{}, {}'.format(i, nIters, inlier_best))
         # Randomly pick 8 pairs of points
@@ -201,7 +201,7 @@ def ransacF(pts1, pts2, M, nIters=1000, tol=1.5):
         F_cur = eightpoint(pts1_sample, pts2_sample, M)
         # Compute inliers
         inlier_cur = 0
-        inliers_cur = np.zeros(pts1.shape[0])
+        inliers_cur = np.zeros(pts1.shape[0],dtype=bool)
         for j in range(0,pts1.shape[0]):
             # Points
             pl = np.append(pts1[j,:],1)
@@ -281,6 +281,7 @@ Q5.3 Extra Credit  Bundle adjustment.
 '''
 def bundleAdjustment(K1, M1, p1, K2, M2_init, p2, P_init):
     # Replace pass by your implementation
+    return 0,0
     pass
 
 
@@ -385,34 +386,45 @@ if __name__ == "__main__":
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M)
-    Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
-    print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
-    print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
-    np.savez_compressed('q5_1.npz',
-      Fnoisy=Fnoisy,
-      Fransac=Fransac,
-      inliers=inliers
-    )
+    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 1)
+    # Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
+    # print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
+    # print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
+    # np.savez_compressed('q5_1.npz',
+    #   Fnoisy=Fnoisy,
+    #   Fransac=Fransac,
+    #   inliers=inliers
+    # )
     q5_1 = np.load('q5_1.npz')
     Fnoisy = q5_1['Fnoisy']
     Fransac = q5_1['Fransac']
     inliers = q5_1['inliers']
-    helper.displayEpipolarF(img1, img2, Fransac)
-    #helper.displayEpipolarF(img1, img2, Fnoisy)
+    # helper.displayEpipolarF(img1, img2, Fransac)
+    # helper.displayEpipolarF(img1, img2, Fnoisy)
 
 
     # # 5.2. Rodrigues & Inv(Rodrigues)
-    # # Test cases
-    # rot_mag = 2.3
-    # R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
-    # #R = R@np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
-    # R = R@np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
-    # print('R = \n{}'.format(R))
-    # w = invRodrigues(R)
-    # print('w = \n{}'.format(w))
-    # R = rodrigues(w)
-    # print('R = \n{}'.format(R))
+    # Test cases
+    rot_mag = 2.3
+    R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
+    #R = R@np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
+    R = R@np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
+    print('R = \n{}'.format(R))
+    w = invRodrigues(R)
+    print('w = \n{}'.format(w))
+    R = rodrigues(w)
+    print('R = \n{}'.format(R))
+
+    # # 5.3. Bundle adjustment
+    # Calculate optimized M2 and w
+    Eransac = essentialMatrix(Fransac, K1, K2)
+    M2_init, _, _ = findM2_EC(pts1_noisy, pts2_noisy, K1, K2, Eransac)
+    [w_init, _] = triangulate(C1, pts1_noisy, K2@M2_init, pts2_noisy)
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(w_init[:,0], w_init[:,1], w_init[:,2])
+    plt.show()
+    [M2, w] = bundleAdjustment(K1, M1, pts1_noisy, K2, M2_init, pts2_noisy, w_init)
     
     
 
