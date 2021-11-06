@@ -7,6 +7,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import math
+import scipy.optimize
 
 import util
 import helper
@@ -280,9 +281,21 @@ Q5.3 Extra Credit  Bundle adjustment.
             P2, the optimized 3D coordinates of points
 '''
 def bundleAdjustment(K1, M1, p1, K2, M2_init, p2, P_init):
-    # Replace pass by your implementation
-    return 0,0
-    pass
+    # Setup for initial
+    P = P_init
+    M = M2_init
+    r2 = invRodrigues(M[:,0:3])
+    t2 = M[:,3]
+    x_init = np.concatenate([P.flatten(),r2.flatten(),t2.flatten()])
+    # Optimize
+    func = lambda x: rodriguesResidual(K1, M1, p1, K2, p2, x)
+    x_final,success = scipy.optimize.leastsq(func, x_init)
+    # Unpack final
+    M2 = np.zeros((3,4))
+    M2[:,3] = x_final[-3:]
+    M2[:,0:3] = rodrigues(np.expand_dims(x_final[-6:-3],axis=1))
+    P2=np.reshape(x_final[:-6],(-1,3))
+    return M2, P2
 
 
 if __name__ == "__main__":
