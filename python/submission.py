@@ -265,8 +265,29 @@ Q5.3: Extra Credit Rodrigues residual.
     Output: residuals, 4N x 1 vector, the difference between original and estimated projections
 '''
 def rodriguesResidual(K1, M1, p1, K2, p2, x):
-    # Replace pass by your implementation
-    pass
+    # Unpack x
+    M2 = np.zeros((3,4))
+    M2[:,3] = x[-3:]
+    M2[:,0:3] = rodrigues(np.expand_dims(x[-6:-3],axis=1))
+    # Compute 3D coordinates using x
+    [Phat, _] = triangulate(K1@M1, p1, K2@M2, p2)
+    # Compute projections
+    phat1_vector = np.zeros((Phat.shape[0],2))
+    phat2_vector = np.zeros((Phat.shape[0],2))
+    C1 = K1 @ M1
+    C2 = K2 @ M2
+    for i in range(0,Phat.shape[0]):
+        phat1 = C1@np.append(Phat[i,:],1)
+        phat1 /= phat1[-1]
+        phat1_vector[i,:] = phat1[0:2]
+        phat2 = C2@np.append(Phat[i,:],1)
+        phat2 /= phat2[-1]
+        phat2_vector[i,:] = phat2[0:2]
+    residuals = np.concatenate([
+        (p1-phat1_vector).reshape([-1]),
+        (p2-phat2_vector).reshape([-1])
+    ])
+    return residuals
 
 '''
 Q5.3 Extra Credit  Bundle adjustment.
@@ -439,9 +460,22 @@ if __name__ == "__main__":
     # ax = fig.add_subplot(projection='3d')
     # ax.scatter(w_init[:,0], w_init[:,1], w_init[:,2])
     # plt.show()
-    [M2, w] = bundleAdjustment(K1, M1, pts1_noisy, K2, M2_init, pts2_noisy, w_init)
-    
-    
+    [M2_opt, w_opt] = bundleAdjustment(K1, M1, pts1_in, K2, M2_init, pts2_in, w_init)
+    [P_init, err_init] = triangulate(C1, pts1_in, K2@M2_init, pts2_in)
+    [P_opt, err_opt] = triangulate(C1, pts1_in, K2@M2_opt, pts2_in)
+    np.savez_compressed('q5_3.npz',
+        M2_init=M2_init,
+        w_init=w_init,
+        M2_opt=M2_opt,
+        w_opt=w_opt
+    )
+    q5_3 = np.load('q5_3.npz')
+    M2_init=q5_3['M2_init']
+    w_init=q5_3['w_init']
+    M2_opt=q5_3['M2_opt']
+    w_opt=q5_3['w_opt']
+    print('M2 init:\n{}'.format(M2_init))
+    print('M2 opt:\n{}'.format(M2_opt))
 
 
     
