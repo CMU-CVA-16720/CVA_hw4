@@ -230,11 +230,13 @@ Q5.2:Extra Credit  Rodrigues formula.
 '''
 def rodrigues(r):
     theta = np.linalg.norm(r)
-    r /= theta
+    if(theta == 0):
+        return np.eye(3)
+    r_norm = r/theta
     K = np.array([
-        [0,-r[2,0],r[1,0]],
-        [r[2,0],0,-r[0,0]],
-        [-r[1,0],r[0,0],0]
+        [0,-r_norm[2,0],r_norm[1,0]],
+        [r_norm[2,0],0,-r_norm[0,0]],
+        [-r_norm[1,0],r_norm[0,0],0]
     ])
     R = np.identity(3)+math.sin(theta)*K+(1-math.cos(theta))*(K@K)
     return R
@@ -269,20 +271,20 @@ def rodriguesResidual(K1, M1, p1, K2, p2, x):
     M2 = np.zeros((3,4))
     M2[:,3] = x[-3:]
     M2[:,0:3] = rodrigues(np.expand_dims(x[-6:-3],axis=1))
-    # Compute 3D coordinates using x
-    [Phat, _] = triangulate(K1@M1, p1, K2@M2, p2)
+    w = x[:-6].reshape(-1,3)
     # Compute projections
-    phat1_vector = np.zeros((Phat.shape[0],2))
-    phat2_vector = np.zeros((Phat.shape[0],2))
+    phat1_vector = np.zeros((p1.shape[0],2))
+    phat2_vector = np.zeros((p1.shape[0],2))
     C1 = K1 @ M1
     C2 = K2 @ M2
-    for i in range(0,Phat.shape[0]):
-        phat1 = C1@np.append(Phat[i,:],1)
+    for i in range(0,p1.shape[0]):
+        phat1 = C1@np.append(w[i,:],1)
         phat1 /= phat1[-1]
         phat1_vector[i,:] = phat1[0:2]
-        phat2 = C2@np.append(Phat[i,:],1)
+        phat2 = C2@np.append(w[i,:],1)
         phat2 /= phat2[-1]
         phat2_vector[i,:] = phat2[0:2]
+    # Compute residual
     residuals = np.concatenate([
         (p1-phat1_vector).reshape([-1]),
         (p2-phat2_vector).reshape([-1])
@@ -310,7 +312,7 @@ def bundleAdjustment(K1, M1, p1, K2, M2_init, p2, P_init):
     x_init = np.concatenate([P.flatten(),r2.flatten(),t2.flatten()])
     # Optimize
     func = lambda x: rodriguesResidual(K1, M1, p1, K2, p2, x)
-    x_final,success = scipy.optimize.leastsq(func, x_init)
+    x_final,_ = scipy.optimize.leastsq(func, x_init)
     # Unpack final
     M2 = np.zeros((3,4))
     M2[:,3] = x_final[-3:]
@@ -408,13 +410,13 @@ if __name__ == "__main__":
 #    ax.scatter(P2[:,0], P2[:,1], P2[:,2])
 #    plt.show()
     # Save results
-    np.savez_compressed('q4_2.npz',
-        F=F,
-        M1=M1,
-        M2=M2,
-        C1=C1,
-        C2=C2
-    )
+#    np.savez_compressed('q4_2.npz',
+#        F=F,
+#        M1=M1,
+#        M2=M2,
+#        C1=C1,
+#        C2=C2
+#    )
 
     # # 5.1. F RANSAC
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
@@ -439,15 +441,15 @@ if __name__ == "__main__":
 
     # # 5.2. Rodrigues & Inv(Rodrigues)
     # Test cases
-    rot_mag = 2.3
-    R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
-    #R = R@np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
-    R = R@np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
-    print('R = \n{}'.format(R))
-    w = invRodrigues(R)
-    print('w = \n{}'.format(w))
-    R = rodrigues(w)
-    print('R = \n{}'.format(R))
+#    rot_mag = 2.3
+#    R = np.array([[math.cos(rot_mag),-math.sin(rot_mag),0], [math.sin(rot_mag),math.cos(rot_mag),0], [0,0,1]]) # Z
+#    R = R@np.array([[math.cos(rot_mag),0,math.sin(rot_mag)], [0,1,0], [-math.sin(rot_mag),0,math.cos(rot_mag)]]) # Y
+#    R = R@np.array([[1,0,0], [0,math.cos(rot_mag),-math.sin(rot_mag)], [0,math.sin(rot_mag),math.cos(rot_mag)]]) # X
+#    print('R = \n{}'.format(R))
+#    w = invRodrigues(R)
+#    print('w = \n{}'.format(w))
+#    R = rodrigues(w)
+#    print('R = \n{}'.format(R))
 
     # # 5.3. Bundle adjustment
     # Perform initial triangulation using inliers
@@ -455,14 +457,29 @@ if __name__ == "__main__":
     pts2_in = pts2_noisy[inliers,:]
     Eransac = essentialMatrix(Fransac, K1, K2)
     M2_init, _, _ = findM2_EC(pts1_in, pts2_in, K1, K2, Eransac)
-    [w_init, _] = triangulate(C1, pts1_in, K2@M2_init, pts2_in)
-    # fig = plt.figure()
-    # ax = fig.add_subplot(projection='3d')
-    # ax.scatter(w_init[:,0], w_init[:,1], w_init[:,2])
-    # plt.show()
+    [w_init, err_init] = triangulate(C1, pts1_in, K2@M2_init, pts2_in)
     [M2_opt, w_opt] = bundleAdjustment(K1, M1, pts1_in, K2, M2_init, pts2_in, w_init)
-    [P_init, err_init] = triangulate(C1, pts1_in, K2@M2_init, pts2_in)
-    [P_opt, err_opt] = triangulate(C1, pts1_in, K2@M2_opt, pts2_in)
+    # Compute and compare results
+    r2_init = invRodrigues(M2_init[:,0:3])
+    t2_init = M2_init[:,3]
+    x_init = np.concatenate([w_init.flatten(),r2_init.flatten(),t2_init.flatten()])
+    residuals_init = rodriguesResidual(K1, M1, pts1_in, K2, pts2_in, x_init)
+    r2_opt = invRodrigues(M2_opt[:,0:3])
+    t2_opt = M2_opt[:,3]
+    x_opt = np.concatenate([w_opt.flatten(),r2_opt.flatten(),t2_opt.flatten()])
+    residuals_opt = rodriguesResidual(K1, M1, pts1_in, K2, pts2_in, x_opt)
+    print("Init error = {}".format(np.sum(residuals_init**2)))
+    print("Opt  error = {}".format(np.sum(residuals_opt**2)))
+    # Plot results
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(w_init[:,0], w_init[:,1], w_init[:,2])
+    plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(w_opt[:,0], w_opt[:,1], w_opt[:,2])
+    plt.show()
+    # Save results
     np.savez_compressed('q5_3.npz',
         M2_init=M2_init,
         w_init=w_init,
