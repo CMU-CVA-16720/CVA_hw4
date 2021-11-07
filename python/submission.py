@@ -273,21 +273,17 @@ def rodriguesResidual(K1, M1, p1, K2, p2, x):
     M2[:,0:3] = rodrigues(np.expand_dims(x[-6:-3],axis=1))
     w = x[:-6].reshape(-1,3)
     # Compute projections
-    phat1_vector = np.zeros((p1.shape[0],2))
-    phat2_vector = np.zeros((p1.shape[0],2))
+    w_homo = np.ones((w.shape[0],w.shape[1]+1))
+    w_homo[:,0:3] = w
     C1 = K1 @ M1
     C2 = K2 @ M2
-    for i in range(0,p1.shape[0]):
-        phat1 = C1@np.append(w[i,:],1)
-        phat1 /= phat1[-1]
-        phat1_vector[i,:] = phat1[0:2]
-        phat2 = C2@np.append(w[i,:],1)
-        phat2 /= phat2[-1]
-        phat2_vector[i,:] = phat2[0:2]
-    # Compute residual
+    phat1_homo = np.transpose(C1@np.transpose(w_homo))
+    phat2_homo = np.transpose(C2@np.transpose(w_homo))
+    phat1 = np.divide(phat1_homo[:,0:2], np.expand_dims(phat1_homo[:,2],axis=1))
+    phat2 = np.divide(phat2_homo[:,0:2], np.expand_dims(phat2_homo[:,2],axis=1))
     residuals = np.concatenate([
-        (p1-phat1_vector).reshape([-1]),
-        (p2-phat2_vector).reshape([-1])
+        (p1-phat1).reshape([-1]),
+        (p2-phat2).reshape([-1])
     ])
     return residuals
 
