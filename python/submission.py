@@ -414,21 +414,21 @@ if __name__ == "__main__":
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 100)
-    Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
-    print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
-    print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
-    # np.savez_compressed('q5_1.npz',
-    #   Fnoisy=Fnoisy,
-    #   Fransac=Fransac,
-    #   inliers=inliers
-    # )
+#    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M)
+#    Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
+#    print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
+#    print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
+#    np.savez_compressed('q5_1.npz',
+#      Fnoisy=Fnoisy,
+#      Fransac=Fransac,
+#      inliers=inliers
+#    )
     q5_1 = np.load('q5_1.npz')
     Fnoisy = q5_1['Fnoisy']
     Fransac = q5_1['Fransac']
     inliers = q5_1['inliers']
-    # helper.displayEpipolarF(img1, img2, Fransac)
-    # helper.displayEpipolarF(img1, img2, Fnoisy)
+#    helper.displayEpipolarF(img1, img2, Fransac)
+#    helper.displayEpipolarF(img1, img2, Fnoisy)
 
 
     # # 5.2. Rodrigues & Inv(Rodrigues)
@@ -472,16 +472,16 @@ if __name__ == "__main__":
     ax.scatter(w_opt[:,0], w_opt[:,1], w_opt[:,2])
     plt.show()
     # Save results
-    np.savez_compressed('q5_3.npz',
-        M2_init=M2_init,
-        w_init=w_init,
-        M2_opt=M2_opt,
-        w_opt=w_opt
-    )
-    q5_3 = np.load('q5_3.npz')
-    M2_init=q5_3['M2_init']
-    w_init=q5_3['w_init']
-    M2_opt=q5_3['M2_opt']
-    w_opt=q5_3['w_opt']
+#    np.savez_compressed('q5_3.npz',
+#        M2_init=M2_init,
+#        w_init=w_init,
+#        M2_opt=M2_opt,
+#        w_opt=w_opt
+#    )
+#    q5_3 = np.load('q5_3.npz')
+#    M2_init=q5_3['M2_init']
+#    w_init=q5_3['w_init']
+#    M2_opt=q5_3['M2_opt']
+#    w_opt=q5_3['w_opt']
     print('M2 init:\n{}'.format(M2_init))
     print('M2 opt:\n{}'.format(M2_opt))
