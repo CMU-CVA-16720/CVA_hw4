@@ -334,10 +334,10 @@ if __name__ == "__main__":
     # Visualize results
 #    helper.displayEpipolarF(img1, img2, F)
     # Save results
-#    np.savez_compressed('q2_1.npz',
-#        F=F,
-#        M=M
-#    )
+    np.savez_compressed('q2_1.npz',
+        F=F,
+        M=M
+    )
 
     # # 3.1. - Essential matrix
     # Get intrinsics
@@ -351,10 +351,10 @@ if __name__ == "__main__":
     # Compute E
     E = essentialMatrix(F, K1, K2)
     # Save results
-#    np.savez_compressed('q3_1.npz',
-#       E=E,
-#       F=F
-#    )
+    np.savez_compressed('q3_1.npz',
+        E=E,
+        F=F
+    )
 
     # # 3.2. - Triangulate
     # Get E
@@ -402,31 +402,31 @@ if __name__ == "__main__":
     ax.scatter(P2[:,0], P2[:,1], P2[:,2])
     plt.show()
     # Save results
-#    np.savez_compressed('q4_2.npz',
-#        F=F,
-#        M1=M1,
-#        M2=M2,
-#        C1=C1,
-#        C2=C2
-#    )
+    np.savez_compressed('q4_2.npz',
+        F=F,
+        M1=M1,
+        M2=M2,
+        C1=C1,
+        C2=C2
+    )
 
     # # 5.1. F RANSAC
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-#    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M)
-#    Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
-#    print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
-#    print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
-#    np.savez_compressed('q5_1.npz',
-#      Fnoisy=Fnoisy,
-#      Fransac=Fransac,
-#      inliers=inliers
-#    )
+    # [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M)
+    # Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
+    # np.savez_compressed('q5_1.npz',
+    #     Fnoisy=Fnoisy,
+    #     Fransac=Fransac,
+    #     inliers=inliers
+    # )
     q5_1 = np.load('q5_1.npz')
     Fnoisy = q5_1['Fnoisy']
     Fransac = q5_1['Fransac']
     inliers = q5_1['inliers']
+    print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
+    print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
 #    helper.displayEpipolarF(img1, img2, Fransac)
 #    helper.displayEpipolarF(img1, img2, Fnoisy)
 
@@ -472,16 +472,16 @@ if __name__ == "__main__":
     ax.scatter(w_opt[:,0], w_opt[:,1], w_opt[:,2])
     plt.show()
     # Save results
-#    np.savez_compressed('q5_3.npz',
-#        M2_init=M2_init,
-#        w_init=w_init,
-#        M2_opt=M2_opt,
-#        w_opt=w_opt
-#    )
-#    q5_3 = np.load('q5_3.npz')
-#    M2_init=q5_3['M2_init']
-#    w_init=q5_3['w_init']
-#    M2_opt=q5_3['M2_opt']
-#    w_opt=q5_3['w_opt']
+    np.savez_compressed('q5_3.npz',
+        M2_init=M2_init,
+        w_init=w_init,
+        M2_opt=M2_opt,
+        w_opt=w_opt
+    )
+    q5_3 = np.load('q5_3.npz')
+    M2_init=q5_3['M2_init']
+    w_init=q5_3['w_init']
+    M2_opt=q5_3['M2_opt']
+    w_opt=q5_3['w_opt']
     print('M2 init:\n{}'.format(M2_init))
     print('M2 opt:\n{}'.format(M2_opt))
