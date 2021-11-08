@@ -330,7 +330,7 @@ if __name__ == "__main__":
     M = np.max([imwidth, imheight])
     print('Image: H = {}, W = {}'.format(imheight, imwidth))
     # Compute fundamental matrix
-#    F = eightpoint(pts1, pts2, M)
+    F = eightpoint(pts1, pts2, M)
     # Visualize results
 #    helper.displayEpipolarF(img1, img2, F)
     # Save results
@@ -349,7 +349,7 @@ if __name__ == "__main__":
     F = q2_1['F']
     print('Fundamental matrix:\n{}'.format(F))
     # Compute E
-#    E = essentialMatrix(F, K1, K2)
+    E = essentialMatrix(F, K1, K2)
     # Save results
 #    np.savez_compressed('q3_1.npz',
 #       E=E,
@@ -373,11 +373,11 @@ if __name__ == "__main__":
     # Compute coordinates
     [P, err] = triangulate(C1, pts1, C2, pts2)
     # Graph results
-#    print('Reprojection error: {}'.format(err))
-#    fig = plt.figure()
-#    ax = fig.add_subplot(projection='3d')
-#    ax.scatter(P[:,0], P[:,1], P[:,2])
-#    plt.show()
+    print('Reprojection error: {}'.format(err))
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(P[:,0], P[:,1], P[:,2])
+    plt.show()
 
     # # 4.1. - Correspondence
     # GUI test; used to generate q4_1.npz
@@ -393,18 +393,14 @@ if __name__ == "__main__":
     img2_y = np.zeros(img1_y.shape)
     for i in range(0, img1_x.shape[0]):
         [img2_x[i,0], img2_y[i,0]] = epipolarCorrespondence(img1, img2, F, img1_x[i,0], img1_y[i,0])
-        # if(np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])]) > 20):
-        #     print('Correspondence: ({},{}) -> ({},{}); delta = {}'.format(
-        #         img1_x[i,0],img1_y[i,0],img2_x[i,0],img2_y[i,0],
-        #         np.linalg.norm([np.array([img2_x[i,0]-img1_x[i,0], img2_y[i,0]-img1_y[i,0]])])))
     # Compute 3D coordinates using triangulate
     [P2, err2] = triangulate(C1, np.append(img1_x,img1_y,axis=1), C2, np.append(img2_x,img2_y,axis=1))
     print('Reprojection error 2: {}'.format(err2))
     # Display results
-#    fig = plt.figure()
-#    ax = fig.add_subplot(projection='3d')
-#    ax.scatter(P2[:,0], P2[:,1], P2[:,2])
-#    plt.show()
+    fig = plt.figure()
+    ax = fig.add_subplot(projection='3d')
+    ax.scatter(P2[:,0], P2[:,1], P2[:,2])
+    plt.show()
     # Save results
 #    np.savez_compressed('q4_2.npz',
 #        F=F,
@@ -418,10 +414,10 @@ if __name__ == "__main__":
     some_corresp_noisy = np.load('../data/some_corresp_noisy.npz')
     pts1_noisy = some_corresp_noisy['pts1']
     pts2_noisy = some_corresp_noisy['pts2']
-    # [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M)
-    # Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
-    # print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
-    # print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
+    [Fransac, inliers] = ransacF(pts1_noisy, pts2_noisy, M, 100)
+    Fnoisy = eightpoint(pts1_noisy, pts2_noisy, M)
+    print('Fnoisy:\n{}'.format(Fnoisy/Fnoisy[-1,-1]))
+    print('Num inliers: {}\nFransac:\n{}'.format(np.count_nonzero(inliers), Fransac/Fransac[-1,-1]))
     # np.savez_compressed('q5_1.npz',
     #   Fnoisy=Fnoisy,
     #   Fransac=Fransac,
@@ -489,7 +485,3 @@ if __name__ == "__main__":
     w_opt=q5_3['w_opt']
     print('M2 init:\n{}'.format(M2_init))
     print('M2 opt:\n{}'.format(M2_opt))
-
-
-    
-
